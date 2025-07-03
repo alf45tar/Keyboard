@@ -1,2 +1,2 @@
 # Keyboard
-Teensy Arduino Keyboard class for ESP32-S3
+Teensyduino Core Library Keyboard class for ESP32-S3
