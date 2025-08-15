@@ -31,9 +31,8 @@
 #ifndef USBkeyboard_h_
 #define USBkeyboard_h_
 
-#include "usb_desc.h"
-
 #include "keylayouts.h"
+#include "transport.h"
 
 #if defined(KEYBOARD_INTERFACE)
 
@@ -55,10 +54,6 @@ void usb_keymedia_release_all(void);
 #endif
 extern uint8_t keyboard_modifier_keys;
 extern uint8_t keyboard_keys[6];
-extern uint8_t keyboard_protocol;
-extern uint8_t keyboard_idle_config;
-extern uint8_t keyboard_idle_count;
-extern volatile uint8_t keyboard_leds;
 #ifdef __cplusplus
 }
 #endif
@@ -71,7 +66,7 @@ extern volatile uint8_t keyboard_leds;
 class usb_keyboard_class : public Print
 {
 public:
-	void begin(void) { }
+	void begin(void) { transport_init(); }
 	void end(void) { }
 	virtual size_t write(uint8_t c) { usb_keyboard_write(c); return 1; }
         size_t write(unsigned long n) { return write((uint8_t)n); }

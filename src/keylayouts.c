@@ -28,7 +28,6 @@
  * SOFTWARE.
  */
 
-#include <avr/pgmspace.h>
 #include <stdint.h>
 
 #include "keylayouts.h"
@@ -93,4 +92,3 @@ const KEYCODE_TYPE keycodes_iso_8859_1[] = {
         M(ISO_8859_1_FC), M(ISO_8859_1_FD), M(ISO_8859_1_FE), M(ISO_8859_1_FF)
 };
 #endif // ISO_8859_1_A0
-

@@ -1,11 +1,11 @@
-#ifndef _usb_dev_h_
-#define _usb_dev_h_
+#ifndef _transport_h_
+#define _transport_h_
 
 #include <stdint.h>
 
 // This header is NOT meant to be included when compiling
 // user sketches in Arduino.  The low-level functions
-// provided by usb_dev.c are meant to be called only by
+// provided by transport.c are meant to be called only by
 // code which provides higher-level interfaces to the user.
 
 
@@ -13,9 +13,9 @@
 extern "C" {
 #endif
 
-void usb_init(void);
-int usb_press(uint8_t modifier, uint8_t keycode[6]);
-int usb_mediakey_press(uint16_t usage_code);
+void transport_init(void);
+int transport_press(uint8_t modifier, uint8_t keycode[6]);
+int transport_mediakey_press(uint16_t usage_code);
 
 #ifdef KEYBOARD_INTERFACE
 extern uint8_t keyboard_modifier_keys;

@@ -28,15 +28,11 @@
  * SOFTWARE.
  */
 
-#include "usb_dev.h"
 #include "usb_keyboard.h"
-#include "core_pins.h" // for yield()
 #include "keylayouts.h"
-//#include "HardwareSerial.h"
-#include <string.h> // for memcpy()
+#include "transport.h"
 
-#ifdef KEYBOARD_INTERFACE // defined by usb_dev.h -> usb_desc.h
-#if F_CPU >= 20000000
+#ifdef KEYBOARD_INTERFACE
 
 // which modifier keys are currently pressed
 // 1=left ctrl,	   2=left shift,   4=left alt,	  8=left gui
@@ -50,22 +46,6 @@ uint8_t keyboard_keys[6]={0,0,0,0,0,0};
 uint16_t keymedia_consumer_keys[4];
 uint8_t keymedia_system_keys[3];
 #endif
-
-// protocol setting from the host.  We use exactly the same report
-// either way, so this variable only stores the setting since we
-// are required to be able to report which setting is in use.
-uint8_t keyboard_protocol=1;
-
-// the idle configuration, how often we send the report to the
-// host (ms * 4) even when it hasn't changed
-uint8_t keyboard_idle_config=125;
-
-// count until idle timeout
-uint8_t keyboard_idle_count=0;
-
-// 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
-volatile uint8_t keyboard_leds=0;
-
 
 
 static KEYCODE_TYPE unicode_to_keycode(uint16_t cpoint);
@@ -489,79 +469,10 @@ int usb_keyboard_press(uint8_t key, uint8_t modifier)
 }
 
 
-// Maximum number of transmit packets to queue so we don't starve other endpoints for memory
-#define TX_PACKET_LIMIT 4
-
-static uint8_t transmit_previous_timeout=0;
-
-// When the PC isn't listening, how long do we wait before discarding data?
-#define TX_TIMEOUT_MSEC 50
-#if F_CPU == 256000000
-  #define TX_TIMEOUT (TX_TIMEOUT_MSEC * 1706)
-#elif F_CPU == 240000000
-  #define TX_TIMEOUT (TX_TIMEOUT_MSEC * 1600)
-#elif F_CPU == 216000000
-  #define TX_TIMEOUT (TX_TIMEOUT_MSEC * 1440)
-#elif F_CPU == 192000000
-  #define TX_TIMEOUT (TX_TIMEOUT_MSEC * 1280)
-#elif F_CPU == 180000000
-  #define TX_TIMEOUT (TX_TIMEOUT_MSEC * 1200)
-#elif F_CPU == 168000000
-  #define TX_TIMEOUT (TX_TIMEOUT_MSEC * 1100)
-#elif F_CPU == 144000000
-  #define TX_TIMEOUT (TX_TIMEOUT_MSEC * 932)
-#elif F_CPU == 120000000
-  #define TX_TIMEOUT (TX_TIMEOUT_MSEC * 764)
-#elif F_CPU == 96000000
-  #define TX_TIMEOUT (TX_TIMEOUT_MSEC * 596)
-#elif F_CPU == 72000000
-  #define TX_TIMEOUT (TX_TIMEOUT_MSEC * 512)
-#elif F_CPU == 48000000
-  #define TX_TIMEOUT (TX_TIMEOUT_MSEC * 428)
-#elif F_CPU == 24000000
-  #define TX_TIMEOUT (TX_TIMEOUT_MSEC * 262)
-#endif
-
-
 // send the contents of keyboard_keys and keyboard_modifier_keys
 int usb_keyboard_send(void)
 {
-#if 0
-	serial_print("Send:");
-	serial_phex(keyboard_modifier_keys);
-	serial_phex(keyboard_keys[0]);
-	serial_phex(keyboard_keys[1]);
-	serial_phex(keyboard_keys[2]);
-	serial_phex(keyboard_keys[3]);
-	serial_phex(keyboard_keys[4]);
-	serial_phex(keyboard_keys[5]);
-	serial_print("\n");
-#endif
-#if 1
-	uint32_t wait_count=0;
-	usb_packet_t *tx_packet;
-
-	while (1) {
-		if (!usb_configuration) {
-			return -1;
-		}
-		if (usb_tx_packet_count(KEYBOARD_ENDPOINT) < TX_PACKET_LIMIT) {
-			tx_packet = usb_malloc();
-			if (tx_packet) break;
-		}
-		if (++wait_count > TX_TIMEOUT || transmit_previous_timeout) {
-			transmit_previous_timeout = 1;
-			return -1;
-		}
-		yield();
-	}
-	*(tx_packet->buf) = keyboard_modifier_keys;
-	*(tx_packet->buf + 1) = 0;
-	memcpy(tx_packet->buf + 2, keyboard_keys, 6);
-	tx_packet->len = 8;
-	usb_tx(KEYBOARD_ENDPOINT, tx_packet);
-#endif
-	return 0;
+	return transport_press(keyboard_modifier_keys, keyboard_keys);
 }
 
 
@@ -646,45 +557,33 @@ void usb_keymedia_release_all(void)
 	if (anybits) usb_keymedia_send();
 }
 
-// send the contents of keyboard_keys and keyboard_modifier_keys
+// send the contents of keymedia_cunsumer_keys and keyboard_system_keys
 static int usb_keymedia_send(void)
 {
-	uint32_t wait_count=0;
-	usb_packet_t *tx_packet;
-	const uint16_t *consumer;
-
-	while (1) {
-		if (!usb_configuration) {
-			return -1;
-		}
-		if (usb_tx_packet_count(KEYMEDIA_ENDPOINT) < TX_PACKET_LIMIT) {
-			tx_packet = usb_malloc();
-			if (tx_packet) break;
-		}
-		if (++wait_count > TX_TIMEOUT || transmit_previous_timeout) {
-			transmit_previous_timeout = 1;
-			return -1;
-		}
-		yield();
+	if (keymedia_consumer_keys[0] == 0 &&
+		keymedia_consumer_keys[1] == 0 &&
+		keymedia_consumer_keys[2] == 0 &&
+		keymedia_consumer_keys[3] == 0 &&
+	    keymedia_system_keys[0]   == 0 &&
+		keymedia_system_keys[1]   == 0 &&
+		keymedia_system_keys[2]   == 0) {
+	    transport_mediakey_press(0);
 	}
-	// 44444444 44333333 33332222 22222211 11111111
-	// 98765432 10987654 32109876 54321098 76543210
-	consumer = keymedia_consumer_keys;
-	*(tx_packet->buf + 0) = consumer[0];
-	*(tx_packet->buf + 1) = (consumer[1] << 2) | ((consumer[0] >> 8) & 0x03);
-	*(tx_packet->buf + 2) = (consumer[2] << 4) | ((consumer[1] >> 6) & 0x0F);
-	*(tx_packet->buf + 3) = (consumer[3] << 6) | ((consumer[2] >> 4) & 0x3F);
-	*(tx_packet->buf + 4) = consumer[3] >> 2;
-	*(tx_packet->buf + 5) = keymedia_system_keys[0];
-	*(tx_packet->buf + 6) = keymedia_system_keys[1];
-	*(tx_packet->buf + 7) = keymedia_system_keys[2];
-	tx_packet->len = 8;
-	usb_tx(KEYMEDIA_ENDPOINT, tx_packet);
-	return 0;
+	else {
+		for (int i = 0; i < 4; i++) {
+			if (keymedia_consumer_keys[i] != 0) {
+				transport_mediakey_press(keymedia_consumer_keys[i]);
+			}
+		}
+		for (int i = 0; i < 3; i++) {
+			if (keymedia_system_keys[i] != 0) {
+				transport_mediakey_press(keymedia_system_keys[i]);
+			}
+		}
+	}
 }
 
 #endif // KEYMEDIA_INTERFACE
 
 
-#endif // F_CPU
 #endif // KEYBOARD_INTERFACE

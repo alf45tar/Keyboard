@@ -1,5 +1,5 @@
-#ifndef _usb_dev_h_
-#define _usb_dev_h_
+#ifndef _ble_dev_h_
+#define _ble_dev_h_
 
 #include <stdint.h>
 
@@ -13,9 +13,9 @@
 extern "C" {
 #endif
 
-void usb_init(void);
-int usb_press(uint8_t modifier, uint8_t keycode[6]);
-int usb_mediakey_press(uint16_t usage_code);
+void ble_init(const char *deviceName, const char *deviceManufacturer, uint8_t batteryLevel);
+int ble_press(uint8_t modifier, uint8_t keycode[6]);
+int ble_mediakey_press(uint16_t usage_code);
 
 #ifdef KEYBOARD_INTERFACE
 extern uint8_t keyboard_modifier_keys;

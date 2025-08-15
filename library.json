@@ -1,0 +1,39 @@
+{
+  "name": "ESP32-S3 Keyboard",
+  "version": "0.1.0",
+  "description": "Port of Teensyduino Keyboard class to ESP32-S3 for USB and BLE Keyboard",
+  "keywords": ["keyboard", "HID", "USB", "BLE", "ESP32-S3"],
+  "authors": [
+    {
+      "name": "alf45tar",
+      "email": "alf45tar@gmail.com",
+      "maintainer": true
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alf45tar/Keyboard.git"
+  },
+  "frameworks": ["arduino"],
+  "platforms": ["espressif32"],
+  "headers": ["Keyboard.h"],
+    "dependencies": [
+    {
+      "name": "Arduino",
+      "version": "*",
+      "frameworks": ["arduino"],
+      "platforms": ["espressif32"]
+    },
+    {
+      "name": "Adafruit TinyUSB Library",
+      "owner": "adafruit",
+      "version": "3.3.4"
+    },
+    {
+      "name": "NimBLE-Arduino",
+      "owner": "h2zero",
+      "version": "1.4.3"
+    }
+  ],
+  "license": "MIT"
+}
