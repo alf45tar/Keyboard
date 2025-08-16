@@ -1,12 +1,9 @@
 # ESP32-S3 Keyboard  
 **Teensyduino-Compatible API + USB (Adafruit TinyUSB) + BLE (NimBLE)**
 
-This project is a **port of the [Teensyduino Keyboard class](https://www.pjrc.com/teensy/td_keyboard.html)** for the **ESP32-S3**,  
-supporting both **USB HID** via [Adafruit TinyUSB](https://github.com/adafruit/Adafruit_TinyUSB_Arduino) and  
-**Bluetooth Low Energy HID** via [NimBLE-Arduino](https://github.com/h2zero/NimBLE-Arduino).
+This project is a **port of the [Teensyduino Keyboard class](https://www.pjrc.com/teensy/td_keyboard.html)** for the **ESP32-S3**,supporting both **USB HID** via [Adafruit TinyUSB](https://github.com/adafruit/Adafruit_TinyUSB_Arduino) and **Bluetooth Low Energy HID** via [NimBLE-Arduino](https://github.com/h2zero/NimBLE-Arduino).
 
-It allows you to use the familiar `Keyboard` API from Teensy on ESP32-S3 boards to send keystrokes  
-either over USB when plugged in, or wirelessly via BLE — with minimal code changes.
+It allows you to use the familiar `Keyboard` API from Teensy on ESP32-S3 boards to send keystrokes either over USB when plugged in, or wirelessly via BLE — with minimal code changes.
 
 ## ✨ Features
 
@@ -20,10 +17,8 @@ either over USB when plugged in, or wirelessly via BLE — with minimal code cha
 
 ## 🚀 Key Advantage Over ESP32-BLE-Keyboard
 
-Unlike the popular [ESP32-BLE-Keyboard](https://github.com/T-vK/ESP32-BLE-Keyboard) library,  
-**this library supports multiple keyboard layouts** (not just US).  
-This makes it easier to use the correct key mapping for your language and region  
-without rewriting code or manually remapping keys.
+Unlike the popular [ESP32-BLE-Keyboard](https://github.com/T-vK/ESP32-BLE-Keyboard) library, **this library supports multiple keyboard layouts** (not just US).  
+This makes it easier to use the correct key mapping for your language and region without rewriting code or manually remapping keys.
 
 ## 📦 Requirements
 
